@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';
+import {authorize,googlePass} from '../../../../lib/wallet';
+export async function POST(req:Request){try{const {db,user}=await authorize(req);const {data:actor}=await db.from('profiles').select('role').eq('id',user.id).single();if(!actor||!['admin','staff'].includes(actor.role))return NextResponse.json({error:'Staff only'},{status:403});const {customerId}=await req.json();if(typeof customerId!=='string')return NextResponse.json({error:'Customer required'},{status:400});await googlePass(customerId);return NextResponse.json({ok:true})}catch{return NextResponse.json({error:'Card sync pending. Membership balance is saved; use profile or retry Add to Google Wallet.'},{status:503})}}

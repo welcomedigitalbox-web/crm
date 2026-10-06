@@ -1,0 +1,4 @@
+import {NextResponse} from 'next/server';
+import {authorize,googlePass,applePass} from '../../../../lib/wallet';
+export const runtime='nodejs';
+export async function POST(req:Request,{params}:{params:Promise<{provider:string}>}){try{const {user}=await authorize(req);const {provider}=await params;if(provider==='google')return NextResponse.json({url:await googlePass(user.id)},{headers:{'Cache-Control':'no-store'}});if(provider==='apple'){const pass=await applePass(user.id);return new Response(new Uint8Array(pass),{headers:{'Content-Type':'application/vnd.apple.pkpass','Content-Disposition':'attachment; filename="bonsine.pkpass"','Cache-Control':'no-store'}})}return NextResponse.json({error:'Unknown wallet provider'},{status:404})}catch(e){const message=(e as Error).message;return NextResponse.json({error:message},{status:/session|required/.test(message)?401:503,headers:{'Cache-Control':'no-store'}})}}
